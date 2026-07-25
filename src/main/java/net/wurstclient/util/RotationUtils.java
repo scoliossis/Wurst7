@@ -14,6 +14,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.RotationFaker;
 import net.wurstclient.WurstClient;
+import net.wurstclient.events.TickRotationListener;
 
 public enum RotationUtils
 {
@@ -41,19 +42,34 @@ public enum RotationUtils
 		return new Rotation(rf.getServerYaw(), rf.getServerPitch()).toLookVec();
 	}
 	
-	public static Rotation getNeededRotations(Vec3 vec)
-	{
-		Vec3 eyes = getEyesPos();
-		
-		double diffX = vec.x - eyes.x;
-		double diffZ = vec.z - eyes.z;
-		double yaw = Math.toDegrees(Math.atan2(diffZ, diffX)) - 90F;
-		
-		double diffY = vec.y - eyes.y;
-		double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
-		double pitch = -Math.toDegrees(Math.atan2(diffY, diffXZ));
-		
-		return Rotation.wrapped((float)yaw, (float)pitch);
+	public static Rotation getNeededRotations(Vec3 vec) {
+		return applyGcd(
+				TickRotationListener.TickRotationEvent.getLastRotation(),
+				getRotationNoGcd(TickRotationListener.TickRotationEvent.getLastRotation(), WurstClient.p().getEyePosition(), vec)
+		);
+	}
+
+	// https://github.com/scoliossis/ScaleHackV3/blob/master/src/main/java/com/github/scoliossis/utils/minecraft/RotationUtil.java#L64
+	private static Rotation getRotationNoGcd(Rotation currentRotation, Vec3 from, Vec3 to) {
+		Vec3 diff = to.subtract(from);
+		double dist = Math.sqrt(diff.x * diff.x + diff.z * diff.z);
+
+		float pitch = (float) Math.toDegrees(-Math.atan2(diff.y, dist));
+		float yaw = (float) Math.toDegrees(Math.atan2(diff.z, diff.x)) - 90;
+
+		float neededPitchChange = currentRotation.pitch() - pitch;
+		float neededYawChange = (currentRotation.yaw() % 360) - yaw;
+
+		neededYawChange = Math.abs(neededYawChange) > 180
+				? -1 *
+				Math.signum(neededYawChange) *
+				  (360 - Math.abs(neededYawChange))
+				: neededYawChange;
+
+		return new Rotation(
+				currentRotation.yaw() - neededYawChange,
+				currentRotation.pitch() - neededPitchChange
+		);
 	}
 	
 	public static double getAngleToLookVec(Vec3 vec)
@@ -182,5 +198,21 @@ public enum RotationUtils
 		float change = Mth.wrapDegrees(intendedWrapped - currentWrapped);
 		
 		return current + change;
+	}
+
+	// https://github.com/scoliossis/ScaleHackV3/blob/master/src/main/java/com/github/scoliossis/utils/minecraft/RotationUtil.java#L25
+	public static Rotation applyGcd(Rotation currentRotation, Rotation targetRotation) {
+		double f = MC.options.sensitivity().get() * (double) 0.6F + (double) 0.2F;
+		double sens = (f * f * f) * (double) 8.0F;
+
+		Rotation difference = targetRotation.difference(currentRotation);
+
+		float yawDelta = (float) (Math.round(difference.yaw() / 0.15d) * sens) * 0.15F;
+		float pitchDelta = (float) (Math.round(difference.pitch() / 0.15d) * sens) * 0.15F;
+
+		return new Rotation(
+				currentRotation.yaw() - yawDelta,
+				Mth.clamp(currentRotation.pitch() - pitchDelta, -90, 90)
+		);
 	}
 }

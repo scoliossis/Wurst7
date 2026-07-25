@@ -9,7 +9,6 @@ package net.wurstclient.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.Entity;
@@ -37,7 +36,7 @@ public abstract class EntityMixin
 	protected abstract Vec3 maybeBackOffFromEdge(Vec3 delta, MoverType moverType);
 
 	@Shadow
-	private int id;
+	public abstract boolean is(Entity other);
 
 	/**
 	 * This mixin makes the VelocityFromFluidEvent work, which is used by
@@ -99,7 +98,7 @@ public abstract class EntityMixin
 	@Inject(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;maybeBackOffFromEdge(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/MoverType;)Lnet/minecraft/world/phys/Vec3;"))
 	private void onMoveCheckIfBackOffEdge(MoverType moverType, Vec3 delta, CallbackInfo ci) {
 		Entity entity = (Entity)(Object)this;
-		if (WurstClient.p() == null || this.id != WurstClient.p().getId() || !(entity instanceof LocalPlayer) || !WurstClient.INSTANCE.getHax().safeWalkHack.shouldSafewalk()) return;
+		if (WurstClient.p() == null || !this.is(WurstClient.p()) || !WurstClient.INSTANCE.getHax().safeWalkHack.shouldSafewalk()) return;
 
 		Input prevPlayerInput = WurstClient.p().input.keyPresses;
 		WurstClient.p().input.keyPresses = new Input(

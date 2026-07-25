@@ -269,7 +269,7 @@ public abstract class MinecraftMixin
 						Rotation.applyWrap360(event.rotation.yaw(), TickRotationListener.TickRotationEvent.clientRotation.yaw()),
 						TickRotationListener.TickRotationEvent.clientRotation.pitch()
 				);
-		TickRotationListener.TickRotationEvent.lastRotation = event.rotation;
+		TickRotationListener.TickRotationEvent.setLastRotation(event.rotation);
 
 		TickRotationListener.TickRotationEvent.lastPitch = TickRotationListener.TickRotationEvent.currentPitch;
 		TickRotationListener.TickRotationEvent.currentPitch = event.rotation.pitch();

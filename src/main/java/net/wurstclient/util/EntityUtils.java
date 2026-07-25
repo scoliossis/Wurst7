@@ -7,10 +7,6 @@
  */
 package net.wurstclient.util;
 
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -20,13 +16,18 @@ import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.projectile.ShulkerBullet;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
+
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public enum EntityUtils
 {
 	;
-	
+
 	protected static final WurstClient WURST = WurstClient.INSTANCE;
 	protected static final Minecraft MC = WurstClient.MC;
 	
@@ -117,5 +118,24 @@ public enum EntityUtils
 		Vec3 end = box.getCenter();
 		Vec3 hitVec = box.clip(start, end).orElse(start);
 		return new EntityHitResult(e, hitVec);
+	}
+
+	public static HitResult getMouseOver(Rotation rotation) {
+		// store rotations, then change rots and check raycast
+		float headYaw = WurstClient.p().yHeadRot, yaw = WurstClient.p().getYRot(), pitch = WurstClient.p().getXRot();
+
+		// head yaw is used somewhere, didnt note down where, trust me this is needed
+		WurstClient.p().setYHeadRot(rotation.yaw());
+		WurstClient.p().setYRot(rotation.yaw());
+		WurstClient.p().setXRot(rotation.pitch());
+
+		HitResult hitResult = WurstClient.p().raycastHitResult(1, WurstClient.p());
+
+		// we dont actually wanna change the player rots, sadly.
+		WurstClient.p().setYHeadRot(headYaw);
+		WurstClient.p().setYRot(yaw);
+		WurstClient.p().setXRot(pitch);
+
+		return hitResult;
 	}
 }

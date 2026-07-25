@@ -61,6 +61,10 @@ public record Rotation(float yaw, float pitch)
 	{
 		return new Rotation(yaw, pitch);
 	}
+
+	public Rotation difference(Rotation other) {
+		return new Rotation(other.yaw - yaw, other.pitch - pitch);
+	}
 	
 	public Vec3 toLookVec()
 	{

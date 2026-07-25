@@ -24,7 +24,14 @@ public interface TickRotationListener extends Listener
             extends Event<TickRotationListener>
     {
         public static Rotation clientRotation;
-        public static Rotation lastRotation;
+        private static Rotation lastRotation;
+        public static void setLastRotation(Rotation lastRotation) {
+            TickRotationEvent.lastRotation = lastRotation;
+        }
+        public static Rotation getLastRotation() {
+            return lastRotation == null ? clientRotation : lastRotation;
+        }
+
         public static float lastPitch;
         public static float currentPitch;
 

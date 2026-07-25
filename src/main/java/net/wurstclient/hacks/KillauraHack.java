@@ -7,41 +7,35 @@
  */
 package net.wurstclient.hacks;
 
-import java.util.Comparator;
-import java.util.function.ToDoubleFunction;
-import java.util.stream.Stream;
-
 import com.mojang.blaze3d.vertex.PoseStack;
-
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.HandleInputListener;
 import net.wurstclient.events.RenderListener;
-import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.TickRotationListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.AttackSpeedSliderSetting;
-import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.EnumSetting;
-import net.wurstclient.settings.PauseAttackOnContainersSetting;
-import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.settings.SwingHandSetting;
-import net.wurstclient.settings.SwingHandSetting.SwingHand;
-import net.wurstclient.settings.filterlists.EntityFilterList;
-import net.wurstclient.util.BlockUtils;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RenderUtils;
+import net.wurstclient.util.Rotation;
 import net.wurstclient.util.RotationUtils;
+
+import java.util.Comparator;
+import java.util.function.ToDoubleFunction;
+import java.util.stream.Stream;
 
 @SearchTags({"kill aura", "ForceField", "force field", "CrystalAura",
 	"crystal aura", "AutoCrystal", "auto crystal"})
 public final class KillauraHack extends Hack
-	implements UpdateListener, HandleInputListener, RenderListener
+	implements TickRotationListener, HandleInputListener, RenderListener
 {
 	private final SliderSetting range = new SliderSetting("Range",
 		"Determines how far Killaura will reach to attack entities.\n"
@@ -69,26 +63,20 @@ public final class KillauraHack extends Hack
 	
 	private final SliderSetting fov =
 		new SliderSetting("FOV", 360, 30, 360, 10, ValueDisplay.DEGREES);
-	
-	private final SwingHandSetting swingHand = new SwingHandSetting(
-		SwingHandSetting.genericCombatDescription(this), SwingHand.CLIENT);
-	
+
 	private final CheckboxSetting damageIndicator = new CheckboxSetting(
 		"Damage indicator",
 		"Renders a colored box within the target, inversely proportional to its remaining health.",
 		true);
-	
+
 	private final PauseAttackOnContainersSetting pauseOnContainers =
 		new PauseAttackOnContainersSetting(true);
-	
+
 	private final CheckboxSetting checkLOS =
 		new CheckboxSetting("Check line of sight",
 			"Ensures that you don't reach through blocks when attacking.\n\n"
 				+ "Slower but can help with anti-cheat plugins.",
 			false);
-	
-	private final EntityFilterList entityFilters =
-		EntityFilterList.genericCombat();
 	
 	private Entity target;
 	private Entity renderTarget;
@@ -103,12 +91,9 @@ public final class KillauraHack extends Hack
 		addSetting(speedRandMS);
 		addSetting(priority);
 		addSetting(fov);
-		addSetting(swingHand);
 		addSetting(damageIndicator);
 		addSetting(pauseOnContainers);
 		addSetting(checkLOS);
-		
-		entityFilters.forEach(this::addSetting);
 	}
 	
 	@Override
@@ -126,7 +111,7 @@ public final class KillauraHack extends Hack
 		WURST.getHax().tpAuraHack.setEnabled(false);
 		
 		speed.resetTimer(speedRandMS.getValue());
-		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(TickRotationListener.class, this);
 		EVENTS.add(HandleInputListener.class, this);
 		EVENTS.add(RenderListener.class, this);
 	}
@@ -134,7 +119,7 @@ public final class KillauraHack extends Hack
 	@Override
 	protected void onDisable()
 	{
-		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(TickRotationListener.class, this);
 		EVENTS.remove(HandleInputListener.class, this);
 		EVENTS.remove(RenderListener.class, this);
 		
@@ -143,25 +128,20 @@ public final class KillauraHack extends Hack
 	}
 	
 	@Override
-	public void onUpdate()
-	{
+	public void onRotationEvent(TickRotationEvent tickRotationEvent) {
 		speed.updateTimer();
-		if(!speed.isTimeToAttack())
-			return;
-		
-		if(pauseOnContainers.shouldPause())
-			return;
-		
-		Stream<Entity> stream = EntityUtils.getAttackableEntities();
+		if (pauseOnContainers.shouldPause() || MC.getConnection() == null || MC.level == null) return;
+
+		// this ignores bots!
+		Stream<Entity> stream = MC.getConnection().getOnlinePlayerIds().stream()
+				.map(uuid -> MC.level.getEntity(uuid))
+				.filter(entity -> entity != null && entity.isAlive() && entity != p());
 		double rangeSq = range.getValueSq();
-		stream =
-			stream.filter(e -> EntityUtils.distanceToHitboxSq(e) <= rangeSq);
+		stream = stream.filter(e -> EntityUtils.distanceToHitboxSq(e) <= rangeSq);
 		
 		if(fov.getValue() < 360.0)
 			stream = stream.filter(e -> RotationUtils.getAngleToLookVec(
 				e.getBoundingBox().getCenter()) <= fov.getValue() / 2.0);
-		
-		stream = entityFilters.applyTo(stream);
 		
 		target = stream.min(priority.getSelected().comparator).orElse(null);
 		renderTarget = target;
@@ -171,23 +151,25 @@ public final class KillauraHack extends Hack
 		WURST.getHax().autoSwordHack.setSlot(target);
 		
 		Vec3 hitVec = target.getBoundingBox().getCenter();
-		if(checkLOS.isChecked() && !BlockUtils.hasLineOfSight(hitVec))
+		Rotation hitRotation = RotationUtils.getNeededRotations(hitVec);
+		HitResult hitResult = EntityUtils.getMouseOver(hitRotation);
+		if(checkLOS.isChecked() && (!(hitResult instanceof EntityHitResult entityHitResult) || entityHitResult.getEntity() != target))
 		{
 			target = null;
 			return;
 		}
-		
-		WURST.getRotationFaker().faceVectorPacket(hitVec);
+
+		tickRotationEvent.rotation = hitRotation;
 	}
 	
 	@Override
 	public void onHandleInput()
 	{
-		if(target == null)
-			return;
+		speed.updateTimer();
+		if(!speed.isTimeToAttack() || target == null) return;
 		
-		MC.gameMode.attack(MC.player, target);
-		swingHand.swing(InteractionHand.MAIN_HAND);
+		MC.gameMode.attack(p(), target);
+		p().swing(InteractionHand.MAIN_HAND);
 		
 		target = null;
 		speed.resetTimer(speedRandMS.getValue());
@@ -216,7 +198,7 @@ public final class KillauraHack extends Hack
 		RenderUtils.drawSolidBox(matrixStack, box, quadColor, false);
 		RenderUtils.drawOutlinedBox(matrixStack, box, lineColor, false);
 	}
-	
+
 	private enum Priority
 	{
 		DISTANCE("Distance", EntityUtils::distanceToHitboxSq),
