@@ -32,6 +32,7 @@ import net.wurstclient.events.TickRotationListener;
 import net.wurstclient.mixinterface.ILocalPlayer;
 import net.wurstclient.mixinterface.IMinecraftClient;
 import net.wurstclient.mixinterface.IMultiPlayerGameMode;
+import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.Rotation;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -285,6 +286,8 @@ public abstract class MinecraftMixin
 			// restore client side rotation, cause the tick is done, and we just rendering now.
 			WurstClient.p().setXRot(TickRotationListener.TickRotationEvent.clientRotation.pitch());
 			WurstClient.p().setYRot(TickRotationListener.TickRotationEvent.clientRotation.yaw());
+
+			EntityUtils.wasJumpDown = WurstClient.MC.options.keyJump.isDown();
 		}
 	}
 }

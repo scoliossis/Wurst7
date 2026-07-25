@@ -7,12 +7,7 @@
  */
 package net.wurstclient.hacks;
 
-import java.util.ArrayList;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.mojang.blaze3d.vertex.PoseStack;
-
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -28,6 +23,7 @@ import net.wurstclient.settings.EspBoxSizeSetting;
 import net.wurstclient.settings.EspStyleSetting;
 import net.wurstclient.settings.EspStyleSetting.EspStyle;
 import net.wurstclient.settings.filterlists.EntityFilterList;
+import net.wurstclient.settings.filters.FilterBotsSetting;
 import net.wurstclient.settings.filters.FilterInvisibleSetting;
 import net.wurstclient.settings.filters.FilterSleepingSetting;
 import net.wurstclient.util.EntityUtils;
@@ -35,6 +31,10 @@ import net.wurstclient.util.FakePlayerEntity;
 import net.wurstclient.util.RenderUtils;
 import net.wurstclient.util.RenderUtils.ColoredBox;
 import net.wurstclient.util.RenderUtils.ColoredPoint;
+
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SearchTags({"player esp", "PlayerTracers", "player tracers"})
 public final class PlayerEspHack extends Hack implements UpdateListener,
@@ -48,6 +48,7 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 			+ "\u00a7lFancy\u00a7r mode shows slightly larger boxes that look better.");
 	
 	private final EntityFilterList entityFilters = new EntityFilterList(
+			FilterBotsSetting.genericVision(true),
 		new FilterSleepingSetting("Won't show sleeping players.", false),
 		new FilterInvisibleSetting("Won't show invisible players.", false));
 	

@@ -23,6 +23,7 @@ import net.wurstclient.events.TickRotationListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
+import net.wurstclient.settings.filterlists.EntityFilterList;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RenderUtils;
 import net.wurstclient.util.Rotation;
@@ -69,6 +70,11 @@ public final class KillauraHack extends Hack
 		"Renders a colored box within the target, inversely proportional to its remaining health.",
 		true);
 
+	private final CheckboxSetting noJumpRotate = new CheckboxSetting(
+			"No Jump Rotate",
+			"Doesn't rotate the player when jumping.",
+			true);
+
 	private final PauseAttackOnContainersSetting pauseOnContainers =
 		new PauseAttackOnContainersSetting(true);
 
@@ -77,6 +83,9 @@ public final class KillauraHack extends Hack
 			"Ensures that you don't reach through blocks when attacking.\n\n"
 				+ "Slower but can help with anti-cheat plugins.",
 			false);
+
+	private final EntityFilterList entityFilters =
+			EntityFilterList.genericCombat();
 	
 	private Entity target;
 	private Entity renderTarget;
@@ -94,6 +103,9 @@ public final class KillauraHack extends Hack
 		addSetting(damageIndicator);
 		addSetting(pauseOnContainers);
 		addSetting(checkLOS);
+		addSetting(noJumpRotate);
+
+		entityFilters.forEach(this::addSetting);
 	}
 	
 	@Override
@@ -132,16 +144,15 @@ public final class KillauraHack extends Hack
 		speed.updateTimer();
 		if (pauseOnContainers.shouldPause() || MC.getConnection() == null || MC.level == null) return;
 
-		// this ignores bots!
-		Stream<Entity> stream = MC.getConnection().getOnlinePlayerIds().stream()
-				.map(uuid -> MC.level.getEntity(uuid))
-				.filter(entity -> entity != null && entity.isAlive() && entity != p());
+		Stream<Entity> stream = EntityUtils.getAttackableEntities();
 		double rangeSq = range.getValueSq();
 		stream = stream.filter(e -> EntityUtils.distanceToHitboxSq(e) <= rangeSq);
 		
 		if(fov.getValue() < 360.0)
 			stream = stream.filter(e -> RotationUtils.getAngleToLookVec(
 				e.getBoundingBox().getCenter()) <= fov.getValue() / 2.0);
+
+		stream = entityFilters.applyTo(stream);
 		
 		target = stream.min(priority.getSelected().comparator).orElse(null);
 		renderTarget = target;
@@ -152,14 +163,9 @@ public final class KillauraHack extends Hack
 		
 		Vec3 hitVec = target.getBoundingBox().getCenter();
 		Rotation hitRotation = RotationUtils.getNeededRotations(hitVec);
-		HitResult hitResult = EntityUtils.getMouseOver(hitRotation);
-		if(checkLOS.isChecked() && (!(hitResult instanceof EntityHitResult entityHitResult) || entityHitResult.getEntity() != target))
-		{
-			target = null;
-			return;
-		}
 
-		tickRotationEvent.rotation = hitRotation;
+		if (noJumpRotate.isChecked() && EntityUtils.willJump()) tickRotationEvent.rotation = tickRotationEvent.rotation.withPitch(hitRotation.pitch());
+		else tickRotationEvent.rotation = hitRotation;
 	}
 	
 	@Override
@@ -167,7 +173,10 @@ public final class KillauraHack extends Hack
 	{
 		speed.updateTimer();
 		if(!speed.isTimeToAttack() || target == null) return;
-		
+
+		HitResult hitResult = EntityUtils.getMouseOver(TickRotationEvent.getLastRotation());
+		if(checkLOS.isChecked() && (!(hitResult instanceof EntityHitResult entityHitResult) || entityHitResult.getEntity() != target)) return;
+
 		MC.gameMode.attack(p(), target);
 		p().swing(InteractionHand.MAIN_HAND);
 		

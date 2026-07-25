@@ -7,6 +7,14 @@
  */
 package net.wurstclient.hack;
 
+import net.minecraft.CrashReport;
+import net.minecraft.ReportedException;
+import net.wurstclient.WurstClient;
+import net.wurstclient.event.EventManager;
+import net.wurstclient.events.UpdateListener;
+import net.wurstclient.hacks.*;
+import net.wurstclient.util.json.JsonException;
+
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
@@ -17,14 +25,6 @@ import java.util.Collections;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import net.minecraft.CrashReport;
-import net.minecraft.ReportedException;
-import net.wurstclient.WurstClient;
-import net.wurstclient.event.EventManager;
-import net.wurstclient.events.UpdateListener;
-import net.wurstclient.hacks.*;
-import net.wurstclient.util.json.JsonException;
 
 public final class HackList implements UpdateListener
 {
@@ -128,6 +128,7 @@ public final class HackList implements UpdateListener
 	public final MileyCyrusHack mileyCyrusHack = new MileyCyrusHack();
 	public final MobEspHack mobEspHack = new MobEspHack();
 	public final MobSpawnEspHack mobSpawnEspHack = new MobSpawnEspHack();
+	public final MovementFixHack movementFixHack = new MovementFixHack();
 	public final MultiAuraHack multiAuraHack = new MultiAuraHack();
 	public final NameProtectHack nameProtectHack = new NameProtectHack();
 	public final NameTagsHack nameTagsHack = new NameTagsHack();
@@ -139,6 +140,7 @@ public final class HackList implements UpdateListener
 	public final NoFireOverlayHack noFireOverlayHack = new NoFireOverlayHack();
 	public final NoFogHack noFogHack = new NoFogHack();
 	public final NoHurtcamHack noHurtcamHack = new NoHurtcamHack();
+	public final NoJumpDelayHack noJumpDelayHack = new NoJumpDelayHack();
 	public final NoLevitationHack noLevitationHack = new NoLevitationHack();
 	public final NoOverlayHack noOverlayHack = new NoOverlayHack();
 	public final NoPumpkinHack noPumpkinHack = new NoPumpkinHack();

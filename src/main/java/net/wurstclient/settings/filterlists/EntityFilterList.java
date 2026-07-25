@@ -7,16 +7,16 @@
  */
 package net.wurstclient.settings.filterlists;
 
+import net.minecraft.world.entity.Entity;
+import net.wurstclient.settings.Setting;
+import net.wurstclient.settings.filters.*;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import net.minecraft.world.entity.Entity;
-import net.wurstclient.settings.Setting;
-import net.wurstclient.settings.filters.*;
 
 public class EntityFilterList
 {
@@ -62,6 +62,7 @@ public class EntityFilterList
 	public static EntityFilterList genericCombat()
 	{
 		return new EntityFilterList(FilterPlayersSetting.genericCombat(false),
+				FilterBotsSetting.genericCombat(true),
 			FilterSleepingSetting.genericCombat(false),
 			FilterFlyingSetting.genericCombat(0),
 			FilterHostileSetting.genericCombat(false),

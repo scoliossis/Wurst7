@@ -19,6 +19,8 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
+import net.wurstclient.hacks.NoJumpDelayHack;
+import net.wurstclient.mixinterface.ILivingEntity;
 
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -137,5 +139,15 @@ public enum EntityUtils
 		WurstClient.p().setXRot(pitch);
 
 		return hitResult;
+	}
+
+	public static boolean wasJumpDown = false;
+	public static boolean willJump() {
+		int jumpCooldown = ((ILivingEntity) WurstClient.p()).bridge$getNoJumpDelay();
+		NoJumpDelayHack noJumpDelayHack = WurstClient.INSTANCE.getHax().noJumpDelayHack;
+		if (noJumpDelayHack.isEnabled() && jumpCooldown > noJumpDelayHack.jumpDelay.getValueI())
+			jumpCooldown = noJumpDelayHack.jumpDelay.getValueI();
+
+		return MC.options.keyJump.isDown() && (jumpCooldown <= 1 || !wasJumpDown) && WurstClient.p().onGround();
 	}
 }

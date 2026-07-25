@@ -75,7 +75,7 @@ public enum WurstClient
 	private WurstUpdater updater;
 	private ProblematicResourcePackDetector problematicPackDetector;
 	private Path wurstFolder;
-	
+
 	public void initialize()
 	{
 		System.out.println("Starting Wurst Client...");
