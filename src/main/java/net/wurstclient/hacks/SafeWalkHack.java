@@ -7,87 +7,53 @@
  */
 package net.wurstclient.hacks;
 
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.phys.AABB;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
+import net.wurstclient.events.TickRotationListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.mixinterface.IKeyMapping;
 import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.SliderSetting;
-import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
+// im so sorry for my differnet coding style, im not pull requesting this anyway, sorry alex.
 @SearchTags({"safe walk", "SneakSafety", "sneak safety", "SpeedBridgeHelper",
 	"speed bridge helper"})
-public final class SafeWalkHack extends Hack
-{
-	private final CheckboxSetting sneak =
-		new CheckboxSetting("Sneak at edges", "Visibly sneak at edges.", false);
-	
-	private final SliderSetting edgeDistance = new SliderSetting(
-		"Sneak edge distance",
-		"How close SafeWalk will let you get to the edge before sneaking.\n\n"
-			+ "This setting is only used when \"Sneak at edges\" is enabled.",
-		0.05, 0.05, 0.25, 0.001, ValueDisplay.DECIMAL.withSuffix("m"));
-	
-	private boolean sneaking;
-	
-	public SafeWalkHack()
-	{
+public final class SafeWalkHack extends Hack implements TickRotationListener {
+	public final CheckboxSetting requireSneakDown =
+			new CheckboxSetting("Require Sneak Down", "Visibly sneak at edges.", false);
+	public final CheckboxSetting requireBlocks =
+			new CheckboxSetting("Require Holding Blocks", "Visibly sneak at edges.", false);
+	public final CheckboxSetting requireHoldS =
+			new CheckboxSetting("Require Holding S", "Visibly sneak at edges.", false);
+	public final CheckboxSetting requireInteractDown =
+			new CheckboxSetting("Require Interact Key Down", "Visibly sneak at edges.", false);
+	public final CheckboxSetting requireLookingDown =
+			new CheckboxSetting("Require Looking Down", "Visibly sneak at edges.", false);
+
+	public SafeWalkHack() {
 		super("SafeWalk");
 		setCategory(Category.MOVEMENT);
-		addSetting(sneak);
-		addSetting(edgeDistance);
+		addSetting(requireSneakDown);
+
+		EVENTS.add(TickRotationListener.class, this);
 	}
-	
+
+	// not static. does that make you happy alex? (its growing on me, sadly.)
+	public boolean shouldSafewalk() {
+		return this.isEnabled()
+				&& (!requireSneakDown.isChecked() || MC.options.keyShift.isDown())
+				&& (!requireBlocks.isChecked() || ScaffoldWalkHack.isValidBlock(p().getInventory().getSelectedSlot()))
+				&& (!requireHoldS.isChecked() || MC.options.keyDown.isDown())
+				&& (!requireInteractDown.isChecked() || MC.options.keyUse.isDown())
+				&& (!requireLookingDown.isChecked() || p().getXRot() > 20);
+	}
+
+	private static boolean onEdgeOfBlock() {
+		return MC.level.getBlockState(ScaffoldWalkHack.blockBelowPlayer()).isAir();
+	}
+
 	@Override
-	protected void onEnable()
-	{
-		WURST.getHax().parkourHack.setEnabled(false);
-		sneaking = false;
+	public void onRotationEvent(TickRotationEvent tickRotationEvent) {
+		//tickRotationEvent.rotation = new Rotation(0, 0);
 	}
-	
-	@Override
-	protected void onDisable()
-	{
-		if(sneaking)
-			setSneaking(false);
-	}
-	
-	public void onClipAtLedge(boolean clipping)
-	{
-		LocalPlayer player = MC.player;
-		
-		if(!isEnabled() || !sneak.isChecked() || !player.onGround())
-		{
-			if(sneaking)
-				setSneaking(false);
-			
-			return;
-		}
-		
-		AABB box = player.getBoundingBox();
-		AABB adjustedBox = box.expandTowards(0, -player.maxUpStep(), 0)
-			.inflate(-edgeDistance.getValue(), 0, -edgeDistance.getValue());
-		
-		if(MC.level.noCollision(player, adjustedBox))
-			clipping = true;
-		
-		setSneaking(clipping);
-	}
-	
-	private void setSneaking(boolean sneaking)
-	{
-		IKeyMapping sneakKey = IKeyMapping.get(MC.options.keyShift);
-		
-		if(sneaking)
-			sneakKey.setDown(true);
-		else
-			sneakKey.resetPressedState();
-		
-		this.sneaking = sneaking;
-	}
-	
-	// See LocalPlayerMixin.isStayingOnGroundSurface() and
-	// LocalPlayerMixin.maybeBackOffFromEdge()
+
+	// See EntityMixin.onMoveCheckIfBackOffEdge (great naming, im a pro)
 }

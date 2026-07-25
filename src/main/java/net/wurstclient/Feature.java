@@ -7,24 +7,25 @@
  */
 package net.wurstclient;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.keybinds.PossibleKeybind;
 import net.wurstclient.mixinterface.IMinecraftClient;
 import net.wurstclient.settings.Setting;
 import net.wurstclient.util.ChatUtils;
 
+import java.util.*;
+
 public abstract class Feature
 {
 	protected static final WurstClient WURST = WurstClient.INSTANCE;
 	protected static final EventManager EVENTS = WURST.getEventManager();
 	protected static final Minecraft MC = WurstClient.MC;
+	public static LocalPlayer p() {
+		return MC.player;
+	}
+
 	protected static final IMinecraftClient IMC = WurstClient.IMC;
 	
 	private final LinkedHashMap<String, Setting> settings =

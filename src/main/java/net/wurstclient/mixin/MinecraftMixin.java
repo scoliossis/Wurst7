@@ -7,26 +7,15 @@
  */
 package net.wurstclient.mixin;
 
-import java.io.File;
-
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.UserApiService;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import com.mojang.blaze3d.platform.WindowEventHandler;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.User;
 import net.minecraft.client.main.GameConfig;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.multiplayer.ProfileKeyPairManager;
 import net.minecraft.client.player.LocalPlayer;
@@ -39,9 +28,22 @@ import net.wurstclient.events.HandleBlockBreakingListener.HandleBlockBreakingEve
 import net.wurstclient.events.HandleInputListener.HandleInputEvent;
 import net.wurstclient.events.LeftClickListener.LeftClickEvent;
 import net.wurstclient.events.RightClickListener.RightClickEvent;
+import net.wurstclient.events.TickRotationListener;
 import net.wurstclient.mixinterface.ILocalPlayer;
 import net.wurstclient.mixinterface.IMinecraftClient;
 import net.wurstclient.mixinterface.IMultiPlayerGameMode;
+import net.wurstclient.util.Rotation;
+import org.jspecify.annotations.Nullable;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.io.File;
 
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin
@@ -55,7 +57,12 @@ public abstract class MinecraftMixin
 	public MultiPlayerGameMode gameMode;
 	@Shadow
 	public LocalPlayer player;
-	
+
+	@Shadow
+	@Nullable
+	public ClientLevel level;
+	@Shadow
+	private volatile boolean pause;
 	@Unique
 	private YggdrasilAuthenticationService wurstAuthenticationService;
 	
@@ -242,5 +249,42 @@ public abstract class MinecraftMixin
 			: wurstAuthenticationService.createUserApiService(accessToken);
 		wurstProfileKeys = ProfileKeyPairManager.create(userApiService, session,
 			gameDirectory.toPath());
+	}
+
+
+
+	// im sadly a lover of server side rotations, and i REFUSE to play without them.
+	@Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/TickRateManager;tick()V"))
+	public void preTickPlayer(CallbackInfo ci) {
+		// store client side rotation so we can restore it when we are done ticking the real player
+		TickRotationListener.TickRotationEvent.clientRotation = new Rotation(WurstClient.p().getYRot(), WurstClient.p().getXRot());
+
+		// fire event, boom chika wow wow
+		TickRotationListener.TickRotationEvent event = new TickRotationListener.TickRotationEvent(TickRotationListener.TickRotationEvent.clientRotation);
+		EventManager.fire(event);
+
+		// make sure that the client rotation is within 180 of the server yaw, to stop flagging aimmodulo360 on disabling
+		TickRotationListener.TickRotationEvent.clientRotation =
+				new Rotation(
+						Rotation.applyWrap360(event.rotation.yaw(), TickRotationListener.TickRotationEvent.clientRotation.yaw()),
+						TickRotationListener.TickRotationEvent.clientRotation.pitch()
+				);
+		TickRotationListener.TickRotationEvent.lastRotation = event.rotation;
+
+		TickRotationListener.TickRotationEvent.lastPitch = TickRotationListener.TickRotationEvent.currentPitch;
+		TickRotationListener.TickRotationEvent.currentPitch = event.rotation.pitch();
+
+		// override player rots with the rots set in the event
+		WurstClient.p().setXRot(event.rotation.pitch());
+		WurstClient.p().setYRot(event.rotation.yaw());
+	}
+
+	@Inject(method = "tick", at = @At(value = "TAIL"))
+	public void postTickPlayer(CallbackInfo ci) {
+		if (this.level != null && !this.pause) {
+			// restore client side rotation, cause the tick is done, and we just rendering now.
+			WurstClient.p().setXRot(TickRotationListener.TickRotationEvent.clientRotation.pitch());
+			WurstClient.p().setYRot(TickRotationListener.TickRotationEvent.clientRotation.yaw());
+		}
 	}
 }

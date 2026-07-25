@@ -7,13 +7,12 @@
  */
 package net.wurstclient.util;
 
-import org.joml.Quaternionf;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
+import org.joml.Quaternionf;
 
 public record Rotation(float yaw, float pitch)
 {
@@ -101,5 +100,15 @@ public record Rotation(float yaw, float pitch)
 	public static Rotation wrapped(float yaw, float pitch)
 	{
 		return new Rotation(Mth.wrapDegrees(yaw), Mth.wrapDegrees(pitch));
+	}
+
+	// never know when u might need this!
+	public static float applyWrap360(float currentYaw, float targetYaw) {
+		float delta = targetYaw - currentYaw;
+
+		while (delta <= -180) delta += 360;
+		while (delta > 180) delta -= 360;
+
+		return currentYaw + delta;
 	}
 }

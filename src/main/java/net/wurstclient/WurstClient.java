@@ -7,14 +7,8 @@
  */
 package net.wurstclient;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.wurstclient.altmanager.AltManager;
 import net.wurstclient.altmanager.Encryption;
 import net.wurstclient.analytics.PlausibleAnalytics;
@@ -23,13 +17,7 @@ import net.wurstclient.command.CmdList;
 import net.wurstclient.command.CmdProcessor;
 import net.wurstclient.command.Command;
 import net.wurstclient.event.EventManager;
-import net.wurstclient.events.ChatOutputListener;
-import net.wurstclient.events.GUIRenderListener;
-import net.wurstclient.events.KeyPressListener;
-import net.wurstclient.events.MouseButtonPressListener;
-import net.wurstclient.events.PostMotionListener;
-import net.wurstclient.events.PreMotionListener;
-import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.*;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hack.HackList;
 import net.wurstclient.hud.IngameHUD;
@@ -44,11 +32,22 @@ import net.wurstclient.update.ProblematicResourcePackDetector;
 import net.wurstclient.update.WurstUpdater;
 import net.wurstclient.util.json.JsonException;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public enum WurstClient
 {
 	INSTANCE;
 	
 	public static Minecraft MC;
+	public static LocalPlayer p() {
+		return MC.player;
+	}
+
 	public static IMinecraftClient IMC;
 	
 	public static final String VERSION = "7.54";

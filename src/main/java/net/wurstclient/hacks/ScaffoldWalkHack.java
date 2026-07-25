@@ -7,8 +7,6 @@
  */
 package net.wurstclient.hacks;
 
-import java.util.Arrays;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -25,6 +23,8 @@ import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.util.BlockUtils;
 import net.wurstclient.util.RotationUtils;
+
+import java.util.Arrays;
 
 @SearchTags({"scaffold walk", "BridgeWalk", "bridge walk", "AutoBridge",
 	"auto bridge", "tower"})
@@ -47,12 +47,30 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 	{
 		EVENTS.remove(UpdateListener.class, this);
 	}
+
+	public static boolean isValidBlock(int i)
+	{
+		// filter out non-block items
+		ItemStack stack = MC.player.getInventory().getItem(i);
+		if(stack.isEmpty() || !(stack.getItem() instanceof BlockItem)) return false;
+
+		// filter out non-solid blocks
+		Block block = Block.byItem(stack.getItem());
+		BlockState state = block.defaultBlockState();
+		if(!state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO))  return false;
+
+		// filter out blocks that would fall
+        return !(block instanceof FallingBlock) || !FallingBlock.isFree(BlockUtils.getState(blockBelowPlayer()));
+    }
+
+	public static BlockPos blockBelowPlayer() {
+		return BlockPos.containing(MC.player.position()).below();
+	}
 	
 	@Override
 	public void onUpdate()
 	{
-		BlockPos belowPlayer =
-			BlockPos.containing(MC.player.position()).below();
+		BlockPos belowPlayer = blockBelowPlayer();
 		
 		// check if block is already placed
 		if(!BlockUtils.getState(belowPlayer).canBeReplaced())
@@ -62,25 +80,10 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 		int newSlot = -1;
 		for(int i = 0; i < 9; i++)
 		{
-			// filter out non-block items
-			ItemStack stack = MC.player.getInventory().getItem(i);
-			if(stack.isEmpty() || !(stack.getItem() instanceof BlockItem))
-				continue;
-			
-			// filter out non-solid blocks
-			Block block = Block.byItem(stack.getItem());
-			BlockState state = block.defaultBlockState();
-			if(!state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE,
-				BlockPos.ZERO))
-				continue;
-			
-			// filter out blocks that would fall
-			if(block instanceof FallingBlock && FallingBlock
-				.isFree(BlockUtils.getState(belowPlayer.below())))
-				continue;
-			
-			newSlot = i;
-			break;
+			if (isValidBlock(i)) {
+				newSlot = i;
+				break;
+			}
 		}
 		
 		// check if any blocks were found

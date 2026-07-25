@@ -7,29 +7,38 @@
  */
 package net.wurstclient.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.world.Nameable;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.player.Input;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.entity.EntityAccess;
+import net.minecraft.world.phys.Vec3;
+import net.wurstclient.WurstClient;
+import net.wurstclient.event.EventManager;
+import net.wurstclient.events.VelocityFromEntityCollisionListener.VelocityFromEntityCollisionEvent;
+import net.wurstclient.events.VelocityFromFluidListener.VelocityFromFluidEvent;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-
-import net.minecraft.commands.CommandSource;
-import net.minecraft.world.Nameable;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.entity.EntityAccess;
-import net.wurstclient.WurstClient;
-import net.wurstclient.event.EventManager;
-import net.wurstclient.events.VelocityFromEntityCollisionListener.VelocityFromEntityCollisionEvent;
-import net.wurstclient.events.VelocityFromFluidListener.VelocityFromFluidEvent;
-
 @Mixin(Entity.class)
 public abstract class EntityMixin
 	implements Nameable, EntityAccess, CommandSource
 {
+	@Shadow
+	protected abstract Vec3 maybeBackOffFromEdge(Vec3 delta, MoverType moverType);
+
+	@Shadow
+	private int id;
+
 	/**
 	 * This mixin makes the VelocityFromFluidEvent work, which is used by
 	 * AntiWaterPush.
@@ -80,5 +89,44 @@ public abstract class EntityMixin
 		if(WurstClient.INSTANCE.getHax().trueSightHack
 			.shouldBeVisible((Entity)(Object)this))
 			cir.setReturnValue(false);
+	}
+
+	/**
+	 * scale made this!!!! i dont like using these comments, because with intellij, /// does the same
+	 * but mr alexander does NOT use intellij ig
+	 * this function checks if crouching would save you from falling off a block, if it would, it crouches.
+	 */
+	@Inject(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;maybeBackOffFromEdge(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/MoverType;)Lnet/minecraft/world/phys/Vec3;"))
+	private void onMoveCheckIfBackOffEdge(MoverType moverType, Vec3 delta, CallbackInfo ci) {
+		Entity entity = (Entity)(Object)this;
+		if (WurstClient.p() == null || this.id != WurstClient.p().getId() || !(entity instanceof LocalPlayer) || !WurstClient.INSTANCE.getHax().safeWalkHack.shouldSafewalk()) return;
+
+		Input prevPlayerInput = WurstClient.p().input.keyPresses;
+		WurstClient.p().input.keyPresses = new Input(
+				prevPlayerInput.forward(),
+				prevPlayerInput.backward(),
+				prevPlayerInput.left(),
+				prevPlayerInput.right(),
+				prevPlayerInput.jump(),
+				true,
+				prevPlayerInput.sprint()
+		);
+
+		Vec3 sneakAdjustedMovement = this.maybeBackOffFromEdge(delta, moverType);
+
+		// if sneaking doesnt stop u, then we arent gonna go over the edge, we are safe!
+		if (sneakAdjustedMovement.x == delta.x && sneakAdjustedMovement.z == delta.z) {
+			// if hold crouch mode is on, we dont want to perma sneak
+			boolean shouldSneak = !WurstClient.INSTANCE.getHax().safeWalkHack.requireSneakDown.isChecked() && prevPlayerInput.shift();
+			WurstClient.p().input.keyPresses = new Input(
+					prevPlayerInput.forward(),
+					prevPlayerInput.backward(),
+					prevPlayerInput.left(),
+					prevPlayerInput.right(),
+					prevPlayerInput.jump(),
+					shouldSneak,
+					prevPlayerInput.sprint()
+			);
+		}
 	}
 }

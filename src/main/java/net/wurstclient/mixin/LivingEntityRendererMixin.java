@@ -7,14 +7,16 @@
  */
 package net.wurstclient.mixin;
 
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
+import net.wurstclient.WurstClient;
+import net.wurstclient.events.TickRotationListener;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.world.entity.LivingEntity;
-import net.wurstclient.WurstClient;
 
 @Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererMixin
@@ -35,5 +37,17 @@ public abstract class LivingEntityRendererMixin
 		if(WurstClient.INSTANCE.getHax().nameTagsHack
 			.shouldForcePlayerNametags())
 			cir.setReturnValue(true);
+	}
+
+
+	/// overwrites the player render pitch to match the pitch sent to the server as its edited in net.wurstclient.mixin.MinecraftMixin.preTickPlayer()
+	@Redirect(
+			method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V",
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getXRot(F)F")
+	)
+	public float fixPitch(LivingEntity instance, float partialTicks) {
+		return instance == WurstClient.p()
+				? Mth.rotLerp(partialTicks, TickRotationListener.TickRotationEvent.lastPitch, TickRotationListener.TickRotationEvent.currentPitch)
+				: instance.getXRot(partialTicks);
 	}
 }
