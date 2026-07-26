@@ -90,7 +90,6 @@ public final class KillauraHack extends Hack
 			EntityFilterList.genericCombat();
 	
 	private Entity target;
-	private Entity renderTarget;
 
 	private static int switchIndex = 0;
 	
@@ -138,13 +137,15 @@ public final class KillauraHack extends Hack
 		EVENTS.remove(RenderListener.class, this);
 		
 		target = null;
-		renderTarget = null;
 	}
 	
 	@Override
 	public void onRotationEvent(TickRotationEvent tickRotationEvent) {
 		speed.updateTimer();
-		if (pauseOnContainers.shouldPause() || MC.getConnection() == null || MC.level == null || !shouldAura()) return;
+		if (pauseOnContainers.shouldPause() || !shouldAura()) {
+			target = null;
+			return;
+		}
 
 		Stream<Entity> stream = EntityUtils.getAttackableEntities();
 
@@ -167,7 +168,7 @@ public final class KillauraHack extends Hack
 		while ((hitVec = getTargetRotationPoint(entities.get(switchIndex))) == null && checks++ < entities.size())
 			switchIndex = (switchIndex + 1) % entities.size();
 
-		target = renderTarget = entities.get(switchIndex);
+		target = entities.get(switchIndex);
 		if(target == null) return;
 
 		Rotation hitRotation = RotationUtils.getNeededRotations(hitVec != null ? hitVec : target.getEyePosition());
@@ -198,11 +199,11 @@ public final class KillauraHack extends Hack
 	@Override
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
-		if(renderTarget == null || !damageIndicator.isChecked())
+		if(target == null || !damageIndicator.isChecked())
 			return;
 		
 		float p = 1;
-		if(renderTarget instanceof LivingEntity le && le.getMaxHealth() > 1e-5)
+		if(target instanceof LivingEntity le && le.getMaxHealth() > 1e-5)
 			p = 1 - le.getHealth() / le.getMaxHealth();
 		float red = p * 2F;
 		float green = 2 - red;
@@ -210,7 +211,7 @@ public final class KillauraHack extends Hack
 		int quadColor = RenderUtils.toIntColor(rgb, 0.25F);
 		int lineColor = RenderUtils.toIntColor(rgb, 0.5F);
 		
-		AABB box = EntityUtils.getLerpedBox(renderTarget, partialTicks);
+		AABB box = EntityUtils.getLerpedBox(target, partialTicks);
 		if(p < 1)
 			box = box.deflate((1 - p) * 0.5 * box.getXsize(),
 				(1 - p) * 0.5 * box.getYsize(), (1 - p) * 0.5 * box.getZsize());
@@ -224,7 +225,7 @@ public final class KillauraHack extends Hack
 				&& blockHitResult.getType() != BlockHitResult.Type.MISS
 				&& MC.options.keyAttack.isDown()
 		)
-				|| MC.gameMode.destroyProgress != 0;
+				|| MC.gameMode.isDestroying;
 		return (!onlyWhileHoldingSword.isChecked() || p().getItemInHand(InteractionHand.MAIN_HAND).is(ItemTags.SWORDS))
 				&& (!onlyWhileLeftClickDown.isChecked() || MC.options.keyAttack.isDown())
 				&& !breakingBlock;

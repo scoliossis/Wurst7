@@ -52,6 +52,7 @@
     "OptionInstanceMixin",
     "PackSelectionScreenMixin",
     "PauseScreenMixin",
+    "PlayerMixin",
     "PowderSnowBlockMixin",
     "ScreenEffectRendererMixin",
     "ScreenMixin",

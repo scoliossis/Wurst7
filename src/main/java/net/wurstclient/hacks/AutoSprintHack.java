@@ -7,69 +7,43 @@
  */
 package net.wurstclient.hacks;
 
-import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.player.Input;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
-import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.KeyboardInputListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.CheckboxSetting;
 
 @SearchTags({"auto sprint"})
-public final class AutoSprintHack extends Hack implements UpdateListener
+public final class AutoSprintHack extends Hack implements KeyboardInputListener
 {
-	private final CheckboxSetting allDirections =
-		new CheckboxSetting("Omnidirectional Sprint",
-			"Sprint in all directions, not just forward.", false);
-	
-	private final CheckboxSetting hungry = new CheckboxSetting("Hungry Sprint",
-		"Sprint even on low hunger.", false);
-	
 	public AutoSprintHack()
 	{
 		super("AutoSprint");
 		setCategory(Category.MOVEMENT);
-		addSetting(allDirections);
-		addSetting(hungry);
 	}
 	
 	@Override
 	protected void onEnable()
 	{
-		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(KeyboardInputListener.class, this);
 	}
 	
 	@Override
 	protected void onDisable()
 	{
-		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(KeyboardInputListener.class, this);
 	}
-	
+
 	@Override
-	public void onUpdate()
-	{
-		LocalPlayer player = MC.player;
-		if(player.horizontalCollision || player.isShiftKeyDown())
-			return;
-		
-		if(player.isInWater() || player.isUnderWater())
-			return;
-		
-		if(!allDirections.isChecked() && player.zza <= 0)
-			return;
-		
-		if(player.input.getMoveVector().length() <= 1e-5F)
-			return;
-		
-		player.setSprinting(true);
-	}
-	
-	public boolean shouldOmniSprint()
-	{
-		return isEnabled() && allDirections.isChecked();
-	}
-	
-	public boolean shouldSprintHungry()
-	{
-		return isEnabled() && hungry.isChecked();
+	public void onKeyboardInputEvent(KeyboardInputEvent keyboardInputEvent) {
+		keyboardInputEvent.input = new Input(
+				keyboardInputEvent.input.forward(),
+				keyboardInputEvent.input.backward(),
+				keyboardInputEvent.input.left(),
+				keyboardInputEvent.input.right(),
+				keyboardInputEvent.input.jump(),
+				keyboardInputEvent.input.shift(),
+				true
+		);
 	}
 }
