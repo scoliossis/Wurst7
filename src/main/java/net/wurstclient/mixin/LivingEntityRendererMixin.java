@@ -35,7 +35,8 @@ public abstract class LivingEntityRendererMixin
 	{
 		// return true immediately after the distance check
 		if(WurstClient.INSTANCE.getHax().nameTagsHack
-			.shouldForcePlayerNametags())
+			.shouldForcePlayerNametags()
+			&& WurstClient.INSTANCE.getHax().nameTagsHack.entityFilters.testOne(entity))
 			cir.setReturnValue(true);
 	}
 

@@ -12,6 +12,9 @@ import net.wurstclient.SearchTags;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.settings.filterlists.EntityFilterList;
+import net.wurstclient.settings.filters.FilterBotsSetting;
+import net.wurstclient.settings.filters.FilterTeamsSetting;
 
 @SearchTags({"name tags"})
 public final class NameTagsHack extends Hack
@@ -41,6 +44,10 @@ public final class NameTagsHack extends Hack
 			"Displays your own nametag as well as any player names that would"
 				+ " normally be disabled by scoreboard team settings.",
 			false);
+
+	public final EntityFilterList entityFilters = new EntityFilterList(
+			FilterBotsSetting.genericVision(true),
+			FilterTeamsSetting.genericVision(true));
 	
 	public NameTagsHack()
 	{
@@ -51,6 +58,8 @@ public final class NameTagsHack extends Hack
 		addSetting(seeThrough);
 		addSetting(forceMobNametags);
 		addSetting(forcePlayerNametags);
+
+		entityFilters.forEach(this::addSetting);
 	}
 	
 	public float getScale()

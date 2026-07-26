@@ -26,6 +26,7 @@ import net.wurstclient.settings.filterlists.EntityFilterList;
 import net.wurstclient.settings.filters.FilterBotsSetting;
 import net.wurstclient.settings.filters.FilterInvisibleSetting;
 import net.wurstclient.settings.filters.FilterSleepingSetting;
+import net.wurstclient.settings.filters.FilterTeamsSetting;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.FakePlayerEntity;
 import net.wurstclient.util.RenderUtils;
@@ -49,6 +50,7 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 	
 	private final EntityFilterList entityFilters = new EntityFilterList(
 			FilterBotsSetting.genericVision(true),
+			FilterTeamsSetting.genericVision(true),
 		new FilterSleepingSetting("Won't show sleeping players.", false),
 		new FilterInvisibleSetting("Won't show invisible players.", false));
 	

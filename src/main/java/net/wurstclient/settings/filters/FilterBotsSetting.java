@@ -4,11 +4,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.wurstclient.WurstClient;
 
-/*
-MC.getConnection().getOnlinePlayerIds().stream()
-				.map(uuid -> MC.level.getEntity(uuid))
-				.filter(entity -> entity != null && entity.isAlive() && entity != p())
- */
 public final class FilterBotsSetting extends EntityFilterCheckbox
 {
     public FilterBotsSetting(String description, boolean checked)

@@ -58,38 +58,39 @@ public class EntityFilterList
 			
 		return true;
 	}
-	
+
 	public static EntityFilterList genericCombat()
 	{
 		return new EntityFilterList(FilterPlayersSetting.genericCombat(false),
-				FilterBotsSetting.genericCombat(true),
-			FilterSleepingSetting.genericCombat(false),
-			FilterFlyingSetting.genericCombat(0),
-			FilterHostileSetting.genericCombat(false),
-			FilterNeutralSetting
-				.genericCombat(AttackDetectingEntityFilter.Mode.OFF),
-			FilterPassiveSetting.genericCombat(false),
-			FilterPassiveWaterSetting.genericCombat(false),
-			FilterBabiesSetting.genericCombat(false),
-			FilterBatsSetting.genericCombat(false),
-			FilterSlimesSetting.genericCombat(false),
-			FilterPetsSetting.genericCombat(false),
-			FilterVillagersSetting.genericCombat(false),
-			FilterZombieVillagersSetting.genericCombat(false),
-			FilterGolemsSetting.genericCombat(false),
-			FilterPiglinsSetting
-				.genericCombat(AttackDetectingEntityFilter.Mode.OFF),
-			FilterZombiePiglinsSetting
-				.genericCombat(AttackDetectingEntityFilter.Mode.OFF),
-			FilterEndermenSetting
-				.genericCombat(AttackDetectingEntityFilter.Mode.OFF),
-			FilterShulkersSetting.genericCombat(false),
-			FilterAllaysSetting.genericCombat(false),
-			FilterInvisibleSetting.genericCombat(false),
-			FilterNamedSetting.genericCombat(false),
-			FilterShulkerBulletSetting.genericCombat(false),
-			FilterArmorStandsSetting.genericCombat(false),
-			FilterCrystalsSetting.genericCombat(false));
+				FilterBotsSetting.genericCombat(false),
+				FilterTeamsSetting.genericCombat(false),
+				FilterSleepingSetting.genericCombat(false),
+				FilterFlyingSetting.genericCombat(0),
+				FilterHostileSetting.genericCombat(false),
+				FilterNeutralSetting
+						.genericCombat(AttackDetectingEntityFilter.Mode.OFF),
+				FilterPassiveSetting.genericCombat(false),
+				FilterPassiveWaterSetting.genericCombat(false),
+				FilterBabiesSetting.genericCombat(false),
+				FilterBatsSetting.genericCombat(false),
+				FilterSlimesSetting.genericCombat(false),
+				FilterPetsSetting.genericCombat(false),
+				FilterVillagersSetting.genericCombat(false),
+				FilterZombieVillagersSetting.genericCombat(false),
+				FilterGolemsSetting.genericCombat(false),
+				FilterPiglinsSetting
+						.genericCombat(AttackDetectingEntityFilter.Mode.OFF),
+				FilterZombiePiglinsSetting
+						.genericCombat(AttackDetectingEntityFilter.Mode.OFF),
+				FilterEndermenSetting
+						.genericCombat(AttackDetectingEntityFilter.Mode.OFF),
+				FilterShulkersSetting.genericCombat(false),
+				FilterAllaysSetting.genericCombat(false),
+				FilterInvisibleSetting.genericCombat(false),
+				FilterNamedSetting.genericCombat(false),
+				FilterShulkerBulletSetting.genericCombat(false),
+				FilterArmorStandsSetting.genericCombat(false),
+				FilterCrystalsSetting.genericCombat(false));
 	}
 	
 	public static interface EntityFilter extends Predicate<Entity>
