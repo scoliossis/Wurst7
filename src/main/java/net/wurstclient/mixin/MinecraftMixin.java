@@ -19,16 +19,22 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.multiplayer.ProfileKeyPairManager;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
+import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
 import net.minecraft.util.thread.ReentrantBlockableEventLoop;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.HandleBlockBreakingListener.HandleBlockBreakingEvent;
 import net.wurstclient.events.HandleInputListener.HandleInputEvent;
+import net.wurstclient.events.KeyboardInputListener;
 import net.wurstclient.events.LeftClickListener.LeftClickEvent;
 import net.wurstclient.events.RightClickListener.RightClickEvent;
 import net.wurstclient.events.TickRotationListener;
+import net.wurstclient.hacks.KeepSprintHack;
 import net.wurstclient.mixinterface.ILocalPlayer;
 import net.wurstclient.mixinterface.IMinecraftClient;
 import net.wurstclient.mixinterface.IMultiPlayerGameMode;
@@ -64,6 +70,10 @@ public abstract class MinecraftMixin
 	public ClientLevel level;
 	@Shadow
 	private volatile boolean pause;
+
+	@Shadow
+	protected abstract boolean startAttack();
+
 	@Unique
 	private YggdrasilAuthenticationService wurstAuthenticationService;
 	
@@ -289,5 +299,49 @@ public abstract class MinecraftMixin
 
 			EntityUtils.wasJumpDown = WurstClient.MC.options.keyJump.isDown();
 		}
+	}
+
+	/**
+	* code for bypassing hypixels (not very good) keepsprint checks
+	 */
+	@Unique private boolean attacked = false;
+
+	@Inject(method = "startAttack()Z", at = @At("HEAD"))
+	private void onStartAttack(CallbackInfoReturnable<Boolean> cir)
+	{
+		attacked = false;
+	}
+
+	@Inject(method = "startAttack()Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;attack(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/Entity;)V"))
+	private void onPreAttack(CallbackInfoReturnable<Boolean> cir) {
+		KeepSprintHack keepSprintHack = WurstClient.INSTANCE.getHax().keepSprintHack;
+		if (!keepSprintHack.shouldKeepsprint() || !keepSprintHack.bypassHypixel.isChecked()) return;
+
+		attacked = true;
+		WurstClient.p().connection.send(new ServerboundPlayerCommandPacket(WurstClient.p(), ServerboundPlayerCommandPacket.Action.STOP_SPRINTING));
+		WurstClient.p().connection.send(new ServerboundPlayerInputPacket(new Input(false, false, false, false, false, false, true)));
+	}
+
+	@Inject(method = "startAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;swing(Lnet/minecraft/world/InteractionHand;)V", ordinal = 1, shift = At.Shift.AFTER))
+	private void onPostAttack(CallbackInfoReturnable<Boolean> cir) {
+		if (!attacked || KeyboardInputListener.KeyboardInputEvent.lastInput == null) return;
+
+		WurstClient.p().connection.send(new ServerboundPlayerCommandPacket(WurstClient.p(), ServerboundPlayerCommandPacket.Action.START_SPRINTING));
+		WurstClient.p().connection.send(new ServerboundPlayerInputPacket(new Input(
+				KeyboardInputListener.KeyboardInputEvent.lastInput.input.forward(),
+				KeyboardInputListener.KeyboardInputEvent.lastInput.input.backward(),
+				KeyboardInputListener.KeyboardInputEvent.lastInput.input.left(),
+				KeyboardInputListener.KeyboardInputEvent.lastInput.input.right(),
+				KeyboardInputListener.KeyboardInputEvent.lastInput.input.jump(),
+				KeyboardInputListener.KeyboardInputEvent.lastInput.input.shift(),
+				true
+		)));
+
+		WurstClient.p().swing(InteractionHand.MAIN_HAND);
+	}
+
+	@Override
+	public void bridge$leftClickMouse() {
+		startAttack();
 	}
 }

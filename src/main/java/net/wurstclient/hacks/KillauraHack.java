@@ -105,6 +105,8 @@ public final class KillauraHack extends Hack
 		addSetting(damageIndicator);
 		addSetting(pauseOnContainers);
 		addSetting(noJumpRotate);
+		addSetting(onlyWhileHoldingSword);
+		addSetting(onlyWhileLeftClickDown);
 
 		entityFilters.forEach(this::addSetting);
 	}
@@ -188,8 +190,7 @@ public final class KillauraHack extends Hack
 
 		WURST.getHax().autoSwordHack.setSlot(target);
 
-		MC.gameMode.attack(p(), target);
-		p().swing(InteractionHand.MAIN_HAND);
+		IMC.bridge$leftClickMouse();
 
 		switchIndex++;
 		target = null;
