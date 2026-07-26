@@ -7,15 +7,6 @@
  */
 package net.wurstclient.mixin;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -24,11 +15,30 @@ import net.minecraft.network.protocol.Packet;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.ConnectionPacketOutputListener.ConnectionPacketOutputEvent;
 import net.wurstclient.events.PacketInputListener.PacketInputEvent;
+import net.wurstclient.mixinterface.IConnection;
+import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Mixin(Connection.class)
 public abstract class ConnectionMixin
 	extends SimpleChannelInboundHandler<Packet<?>>
+	implements IConnection
 {
+	@Shadow
+	protected abstract void channelRead0(ChannelHandlerContext ctx, Packet<?> packet);
+
+	@Override
+	public void bridge$receivePacket(Packet<?> packet) {
+		this.channelRead0(null, packet);
+	}
+
 	private ConcurrentLinkedQueue<ConnectionPacketOutputEvent> events =
 		new ConcurrentLinkedQueue<>();
 	

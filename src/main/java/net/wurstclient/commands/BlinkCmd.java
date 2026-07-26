@@ -7,11 +7,11 @@
  */
 package net.wurstclient.commands;
 
-import net.wurstclient.command.CmdError;
 import net.wurstclient.command.CmdException;
 import net.wurstclient.command.CmdSyntaxError;
 import net.wurstclient.command.Command;
 import net.wurstclient.hacks.BlinkHack;
+import net.wurstclient.util.BlinkUtil;
 
 public final class BlinkCmd extends Command
 {
@@ -49,16 +49,8 @@ public final class BlinkCmd extends Command
 			break;
 			
 			case "cancel":
-			cancel(blinkHack);
+				BlinkUtil.disableBlink(true, true);
 			break;
 		}
-	}
-	
-	private void cancel(BlinkHack blinkHack) throws CmdException
-	{
-		if(!blinkHack.isEnabled())
-			throw new CmdError("Cannot cancel, Blink is already turned off!");
-		
-		blinkHack.cancel();
 	}
 }

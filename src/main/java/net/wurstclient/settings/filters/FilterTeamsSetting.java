@@ -17,7 +17,7 @@ public final class FilterTeamsSetting extends EntityFilterCheckbox
         if(!(e instanceof Player pe) || WurstClient.p() == null)
             return true;
 
-        return pe.getTeam() != WurstClient.p().getTeam();
+        return pe.getTeamColor() != WurstClient.p().getTeamColor();
     }
 
     public static FilterTeamsSetting genericCombat(boolean checked)

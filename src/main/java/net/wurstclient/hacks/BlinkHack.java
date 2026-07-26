@@ -7,109 +7,87 @@
  */
 package net.wurstclient.hacks;
 
-import java.util.ArrayDeque;
-
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
+import net.wurstclient.events.PacketInputListener;
 import net.wurstclient.events.PacketOutputListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.SliderSetting;
-import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.util.FakePlayerEntity;
+import net.wurstclient.settings.CheckboxSetting;
+import net.wurstclient.util.BlinkUtil;
 
 @DontSaveState
 @SearchTags({"LagSwitch", "lag switch"})
 public final class BlinkHack extends Hack
-	implements UpdateListener, PacketOutputListener
+	implements PacketInputListener, PacketOutputListener, UpdateListener
 {
-	private final SliderSetting limit = new SliderSetting("Limit",
-		"Automatically restarts Blink once the given number of packets have been suspended.\n\n"
-			+ "0 = no limit",
-		0, 0, 500, 1, ValueDisplay.INTEGER.withLabel(0, "disabled"));
-	
-	private final ArrayDeque<ServerboundMovePlayerPacket> packets =
-		new ArrayDeque<>();
-	private FakePlayerEntity fakePlayer;
-	
+	private final CheckboxSetting blinkOutbound = new CheckboxSetting(
+			"Blink Outbound",
+			"Pauses sending packets to the server.",
+			true);
+
+	private final CheckboxSetting blinkInbound = new CheckboxSetting(
+			"Blink Inbound",
+			"Pauses receiving packets from the server.",
+			true);
+
+
 	public BlinkHack()
 	{
 		super("Blink");
 		setCategory(Category.MOVEMENT);
-		addSetting(limit);
+
+		addSetting(blinkOutbound);
+		addSetting(blinkInbound);
+
+		EVENTS.add(PacketOutputListener.class, this);
+		EVENTS.add(PacketInputListener.class, this);
 	}
-	
-	@Override
-	public String getRenderName()
-	{
-		if(limit.getValueI() == 0)
-			return getName() + " [" + packets.size() + "]";
-		return getName() + " [" + packets.size() + "/" + limit.getValueI()
-			+ "]";
-	}
-	
+
 	@Override
 	protected void onEnable()
 	{
-		fakePlayer = new FakePlayerEntity();
-		
 		EVENTS.add(UpdateListener.class, this);
-		EVENTS.add(PacketOutputListener.class, this);
+		BlinkUtil.pushBlink(blinkOutbound.isChecked(), blinkInbound.isChecked(), this.getClass());
 	}
-	
+
 	@Override
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
-		EVENTS.remove(PacketOutputListener.class, this);
-		
-		fakePlayer.despawn();
-		packets.forEach(p -> MC.player.connection.send(p));
-		packets.clear();
+		BlinkUtil.popBlink(blinkOutbound.isChecked(), blinkInbound.isChecked(), this.getClass());
 	}
-	
+
 	@Override
-	public void onUpdate()
-	{
-		if(limit.getValueI() == 0)
-			return;
-		
-		if(packets.size() >= limit.getValueI())
-		{
-			setEnabled(false);
-			setEnabled(true);
-		}
-	}
-	
-	@Override
-	public void onSentPacket(PacketOutputEvent event)
-	{
-		if(!(event.getPacket() instanceof ServerboundMovePlayerPacket))
-			return;
-		
+	public void onSentPacket(PacketOutputEvent event) {
+		if (!BlinkUtil.isBlinking(true, false)) return;
+
+		BlinkUtil.OUTGOING_BLINK.getLast().packets().add(event.getPacket());
 		event.cancel();
-		
-		ServerboundMovePlayerPacket packet =
-			(ServerboundMovePlayerPacket)event.getPacket();
-		ServerboundMovePlayerPacket prevPacket = packets.peekLast();
-		
-		if(prevPacket != null && packet.isOnGround() == prevPacket.isOnGround()
-			&& packet.getYRot(-1) == prevPacket.getYRot(-1)
-			&& packet.getXRot(-1) == prevPacket.getXRot(-1)
-			&& packet.getX(-1) == prevPacket.getX(-1)
-			&& packet.getY(-1) == prevPacket.getY(-1)
-			&& packet.getZ(-1) == prevPacket.getZ(-1))
-			return;
-		
-		packets.addLast(packet);
 	}
-	
-	public void cancel()
-	{
-		packets.clear();
-		fakePlayer.resetPlayerPosition();
-		setEnabled(false);
+
+	@Override
+	public void onReceivedPacket(PacketInputEvent event) {
+		if (!BlinkUtil.isBlinking(false, true)) return;
+
+		BlinkUtil.INCOMING_BLINK.getLast().packets().add(event.getPacket());
+		event.cancel();
+	}
+
+	// checks if either of the sub settings are toggled
+	@Override
+	public void onUpdate() {
+		if (blinkOutbound.isChecked() != BlinkUtil.isBlinking(true, false, this.getClass())) {
+			if (blinkOutbound.isChecked()) BlinkUtil.pushBlink(true, false, this.getClass());
+			else BlinkUtil.popBlink(true, false, this.getClass());
+		}
+
+		if (blinkInbound.isChecked() != BlinkUtil.isBlinking(false, true, this.getClass())) {
+			if (blinkInbound.isChecked()) BlinkUtil.pushBlink(false, true, this.getClass());
+			else BlinkUtil.popBlink(false, true, this.getClass());
+		}
+
+		if (MC.level == null) BlinkUtil.disableBlink(true, true);
 	}
 }
