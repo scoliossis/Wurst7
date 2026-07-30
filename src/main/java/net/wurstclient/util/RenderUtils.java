@@ -7,31 +7,35 @@
  */
 package net.wurstclient.util;
 
-import java.util.List;
-
-import org.joml.Matrix3x2f;
-import org.joml.Matrix3x2fStack;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
-
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-
 import net.minecraft.client.Camera;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.wurstclient.C;
 import net.wurstclient.WurstClient;
 import net.wurstclient.WurstRenderLayers;
+import org.joml.Matrix3x2f;
+import org.joml.Matrix3x2fStack;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+
+import java.awt.image.BufferedImage;
+import java.util.List;
 
 public enum RenderUtils
 {
@@ -933,6 +937,21 @@ public enum RenderUtils
 		context.guiRenderState.addGuiElement(new CustomQuadRenderState(pose, x2,
 			y2, x1, y2, xs1, ys2, xs2, ys2, shadowColor1, shadowColor1,
 			shadowColor2, shadowColor2, scissor));
+	}
+
+	public static AbstractTexture createTexture(Identifier identifier, BufferedImage bufferedImage) {
+		NativeImage nativeImage = new NativeImage(bufferedImage.getWidth(), bufferedImage.getHeight(), false);
+		for (int x = 0; x < bufferedImage.getWidth(); x++) {
+			for (int y = 0; y < bufferedImage.getHeight(); y++) {
+				int color = bufferedImage.getRGB(x, y);
+				nativeImage.fillRect(x, y, 1, 1, color);
+			}
+		}
+
+		AbstractTexture abstractTexture = new DynamicTexture(identifier::getPath, nativeImage);
+		C.mc.getTextureManager().register(identifier, abstractTexture);
+
+		return abstractTexture;
 	}
 	
 	public record ColoredPoint(Vec3 point, int color)

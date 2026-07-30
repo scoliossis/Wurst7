@@ -7,17 +7,16 @@
  */
 package net.wurstclient.command;
 
-import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.TreeMap;
-
 import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
 import net.wurstclient.commands.*;
 
+import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.TreeMap;
+
 public final class CmdList
 {
-	public final AddAltCmd addAltCmd = new AddAltCmd();
 	public final AnnoyCmd annoyCmd = new AnnoyCmd();
 	public final AuthorCmd authorCmd = new AuthorCmd();
 	public final BindCmd bindCmd = new BindCmd();

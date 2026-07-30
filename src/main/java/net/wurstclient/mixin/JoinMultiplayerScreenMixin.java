@@ -8,7 +8,6 @@
 package net.wurstclient.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.client.User;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.layouts.LinearLayout;
@@ -17,9 +16,6 @@ import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.chat.Component;
 import net.wurstclient.WurstClient;
-import net.wurstclient.altmanager.LoginException;
-import net.wurstclient.altmanager.MicrosoftLoginManager;
-import net.wurstclient.altmanager.MinecraftProfile;
 import net.wurstclient.serverfinder.CleanUpScreen;
 import net.wurstclient.serverfinder.ServerFinderScreen;
 import net.wurstclient.util.LastServerRememberer;
@@ -28,8 +24,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Optional;
 
 @Mixin(JoinMultiplayerScreen.class)
 public class JoinMultiplayerScreenMixin extends Screen
@@ -56,6 +50,7 @@ public class JoinMultiplayerScreenMixin extends Screen
 		
 		JoinMultiplayerScreen mpScreen = (JoinMultiplayerScreen)(Object)this;
 
+		/*
 		addRenderableWidget(
 				Button
 						.builder(Component.nullToEmpty("Token Login"),
@@ -72,6 +67,7 @@ public class JoinMultiplayerScreenMixin extends Screen
                                     }
 								})
 						.bounds(10, 10, 100, 20).build());
+		 */
 
 
 		// Add Last Server button early for better tab navigation

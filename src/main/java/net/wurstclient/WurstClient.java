@@ -7,10 +7,10 @@
  */
 package net.wurstclient;
 
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.wurstclient.altmanager.AltManager;
-import net.wurstclient.altmanager.Encryption;
+import net.wurstclient.altmanager.DroppedFileListener;
 import net.wurstclient.analytics.PlausibleAnalytics;
 import net.wurstclient.clickgui.ClickGui;
 import net.wurstclient.command.CmdList;
@@ -49,13 +49,12 @@ public enum WurstClient
 	}
 
 	public static IMinecraftClient IMC;
-	
+
 	public static final String VERSION = "7.54";
 	public static final String MC_VERSION = "26.2";
 	
 	private PlausibleAnalytics plausible;
 	private EventManager eventManager;
-	private AltManager altManager;
 	private HackList hax;
 	private CmdList cmds;
 	private OtfList otfs;
@@ -69,6 +68,8 @@ public enum WurstClient
 	private RotationFaker rotationFaker;
 	private FriendsList friends;
 	private WurstTranslator translator;
+
+	public static final String ALTS_PATH = "wurst/alts";
 	
 	private boolean enabled = true;
 	private static boolean guiInitialized;
@@ -138,10 +139,9 @@ public enum WurstClient
 		
 		problematicPackDetector = new ProblematicResourcePackDetector();
 		problematicPackDetector.start();
-		
-		Path altsFile = wurstFolder.resolve("alts.encrypted_json");
-		Path encFolder = Encryption.chooseEncryptionFolder();
-		altManager = new AltManager(altsFile, encFolder);
+
+		// the window isnt here yet. await.
+		ClientLifecycleEvents.CLIENT_STARTED.register(DroppedFileListener::init);
 	}
 	
 	private Path createWurstFolder()
@@ -314,10 +314,5 @@ public enum WurstClient
 	public Path getWurstFolder()
 	{
 		return wurstFolder;
-	}
-	
-	public AltManager getAltManager()
-	{
-		return altManager;
 	}
 }
