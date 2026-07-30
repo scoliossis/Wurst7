@@ -8,6 +8,7 @@
 package net.wurstclient.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.client.User;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.layouts.LinearLayout;
@@ -16,6 +17,7 @@ import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.chat.Component;
 import net.wurstclient.WurstClient;
+import net.wurstclient.altmanager.SessionUtil;
 import net.wurstclient.serverfinder.CleanUpScreen;
 import net.wurstclient.serverfinder.ServerFinderScreen;
 import net.wurstclient.util.LastServerRememberer;
@@ -50,24 +52,18 @@ public class JoinMultiplayerScreenMixin extends Screen
 		
 		JoinMultiplayerScreen mpScreen = (JoinMultiplayerScreen)(Object)this;
 
-		/*
 		addRenderableWidget(
 				Button
 						.builder(Component.nullToEmpty("Token Login"),
 								b -> {
                                     try {
-										MinecraftProfile mcProfile = MicrosoftLoginManager.getMinecraftProfile(this.minecraft.keyboardHandler.getClipboard());
-
-										User session = new User(mcProfile.getName(), mcProfile.getUUID(),
-												mcProfile.getAccessToken(), Optional.empty(), Optional.empty());
-
+									 	User session = SessionUtil.queryPlayerProfile(this.minecraft.keyboardHandler.getClipboard());
 										WurstClient.IMC.setWurstSession(session);
-                                    } catch (LoginException e) {
+                                    } catch (Exception e) {
                                         e.printStackTrace();
                                     }
 								})
 						.bounds(10, 10, 100, 20).build());
-		 */
 
 
 		// Add Last Server button early for better tab navigation
