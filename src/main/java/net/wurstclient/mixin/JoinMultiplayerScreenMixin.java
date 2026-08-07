@@ -16,7 +16,9 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Util;
 import net.wurstclient.WurstClient;
+import net.wurstclient.altmanager.AuthServer;
 import net.wurstclient.altmanager.SessionUtil;
 import net.wurstclient.serverfinder.CleanUpScreen;
 import net.wurstclient.serverfinder.ServerFinderScreen;
@@ -26,6 +28,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.net.URI;
 
 @Mixin(JoinMultiplayerScreen.class)
 public class JoinMultiplayerScreenMixin extends Screen
@@ -57,7 +61,7 @@ public class JoinMultiplayerScreenMixin extends Screen
 						.builder(Component.nullToEmpty("Token Login"),
 								b -> {
                                     try {
-									 	User session = SessionUtil.queryPlayerProfile(this.minecraft.keyboardHandler.getClipboard());
+										User session = SessionUtil.queryPlayerProfile(this.minecraft.keyboardHandler.getClipboard());
 										WurstClient.IMC.setWurstSession(session);
                                     } catch (Exception e) {
                                         e.printStackTrace();
@@ -65,6 +69,19 @@ public class JoinMultiplayerScreenMixin extends Screen
 								})
 						.bounds(10, 10, 100, 20).build());
 
+		addRenderableWidget(
+				Button
+						.builder(Component.nullToEmpty("Microsoft Login"),
+								b -> {
+									try {
+										// minecraft doesnt let u set clipboard or open browser normally </3
+										this.minecraft.keyboardHandler.setClipboard(AuthServer.URL);
+										Util.getPlatform().openUri(new URI(AuthServer.URL));
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+								})
+						.bounds(10, 35, 100, 20).build());
 
 		// Add Last Server button early for better tab navigation
 		lastServerButton = Button

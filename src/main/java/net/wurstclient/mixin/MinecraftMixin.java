@@ -26,6 +26,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.wurstclient.C;
 import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.HandleBlockBreakingListener.HandleBlockBreakingEvent;
@@ -267,6 +268,8 @@ public abstract class MinecraftMixin
 	// im sadly a lover of server side rotations, and i REFUSE to play without them.
 	@Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/TickRateManager;tick()V"))
 	public void preTickPlayer(CallbackInfo ci) {
+		C.tick++;
+
 		// store client side rotation so we can restore it when we are done ticking the real player
 		TickRotationListener.TickRotationEvent.clientRotation = new Rotation(WurstClient.p().getYRot(), WurstClient.p().getXRot());
 

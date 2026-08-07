@@ -14,6 +14,7 @@ import java.net.http.HttpClient;
 import java.util.concurrent.ForkJoinPool;
 
 // todo: use this, i dont think typing WurstClient.MC is very fast :pensive:
+// C is supposed to stand for "constants" but it kinda stands for "client variables" now.
 public class C {
     // todo: remake event bus and modules aswell </3
     //public static final Reflections REFLECTIONS = new Reflections(Main.class.getPackage().getName());
@@ -49,4 +50,6 @@ public class C {
     public static boolean isInGame() {
         return w() != null && p() != null;
     }
+
+    public static int tick = 0;
 }

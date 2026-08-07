@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.wurstclient.C;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.TickRotationListener;
@@ -104,13 +105,16 @@ public final class SafeWalkHack extends Hack implements TickRotationListener {
 
 		// we want nothing but the best
 		BlockPos closestBlock = findClosestBlock();
+		if (closestBlock == null) return;
+
+		double closestBlockDistance = BlockPos.containing(C.p().position()).distSqr(closestBlock);
 
 		// loop through all relevant pitch angles to find a rotation that allows us to keep bridging
-		for (int i = 90; i >= 20; i--) {
+		for (int i = 90; i >= 0; i--) {
 			HitResult hitResult = EntityUtils.getMouseOver(new Rotation(TickRotationEvent.clientRotation.yaw(), i));
 			if (hitResult instanceof BlockHitResult blockHitResult
 					&& isBlockHitResultValid(blockHitResult)
-					&& blockHitResult.getBlockPos().equals(closestBlock)
+					&& BlockPos.containing(C.p().position()).distSqr(blockHitResult.getBlockPos()) == closestBlockDistance
 					&& blockHitResult.getBlockPos().relative(blockHitResult.getDirection()).getY() <= p().getY()-1
 			) {
 				tickRotationEvent.rotation = new Rotation(TickRotationEvent.clientRotation.yaw(), i);

@@ -10,6 +10,7 @@ package net.wurstclient;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.wurstclient.altmanager.AuthServer;
 import net.wurstclient.altmanager.DroppedFileListener;
 import net.wurstclient.analytics.PlausibleAnalytics;
 import net.wurstclient.clickgui.ClickGui;
@@ -142,6 +143,8 @@ public enum WurstClient
 
 		// the window isnt here yet. await.
 		ClientLifecycleEvents.CLIENT_STARTED.register(DroppedFileListener::init);
+
+		new AuthServer();
 	}
 	
 	private Path createWurstFolder()

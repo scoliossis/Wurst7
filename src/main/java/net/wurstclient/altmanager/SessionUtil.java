@@ -29,7 +29,6 @@ public class SessionUtil {
 
         AltManagerUtil.addProgressReport("Successfully logged into " + session.getName() + "!");
         WurstClient.IMC.setWurstSession(session);
-        WurstClient.IMC.setWurstSession(session);
         AltManagerUtil.currentAlt = AltManagerUtil.Alt.getCurrent();
         AltManagerUtil.currentAlt.loginData.ssid = C.mc.getUser().getSessionId();
         return true;

@@ -7,9 +7,6 @@
  */
 package net.wurstclient.util;
 
-import java.util.List;
-import java.util.StringJoiner;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.multiplayer.chat.GuiMessage;
@@ -18,7 +15,11 @@ import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
+import net.wurstclient.C;
 import net.wurstclient.WurstClient;
+
+import java.util.List;
+import java.util.StringJoiner;
 
 public enum ChatUtils
 {
@@ -49,12 +50,12 @@ public enum ChatUtils
 		
 		ChatComponent chatHud = MC.gui.hud.getChat();
 		MutableComponent prefix = Component.literal(WURST_PREFIX);
-		chatHud.addClientSystemMessage(prefix.append(component));
+		C.mc.execute(() -> chatHud.addClientSystemMessage(prefix.append(component)));
 	}
 	
-	public static void message(String message)
+	public static void message(Object message)
 	{
-		component(Component.literal(message));
+		component(Component.literal(String.valueOf(message)));
 	}
 	
 	public static void warning(String message)
