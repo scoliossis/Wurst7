@@ -81,7 +81,6 @@ public final class HackList implements UpdateListener
 	public final ChatTranslatorHack chatTranslatorHack =
 		new ChatTranslatorHack();
 	public final ChestEspHack chestEspHack = new ChestEspHack();
-	public final ClickAuraHack clickAuraHack = new ClickAuraHack();
 	public final ClickGuiHack clickGuiHack = new ClickGuiHack();
 	public final CrashChestHack crashChestHack = new CrashChestHack();
 	public final CreativeFlightHack creativeFlightHack =
@@ -119,7 +118,6 @@ public final class HackList implements UpdateListener
 	public final JetpackHack jetpackHack = new JetpackHack();
 	public final KaboomHack kaboomHack = new KaboomHack();
 	public final KeepSprintHack keepSprintHack = new KeepSprintHack();
-	public final KillauraLegitHack killauraLegitHack = new KillauraLegitHack();
 	public final KillauraHack killauraHack = new KillauraHack();
 	public final KillPotionHack killPotionHack = new KillPotionHack();
 	public final LiquidsHack liquidsHack = new LiquidsHack();
@@ -130,7 +128,6 @@ public final class HackList implements UpdateListener
 	public final MobEspHack mobEspHack = new MobEspHack();
 	public final MobSpawnEspHack mobSpawnEspHack = new MobSpawnEspHack();
 	public final MovementFixHack movementFixHack = new MovementFixHack();
-	public final MultiAuraHack multiAuraHack = new MultiAuraHack();
 	public final NameProtectHack nameProtectHack = new NameProtectHack();
 	public final NameTagsHack nameTagsHack = new NameTagsHack();
 	public final NavigatorHack navigatorHack = new NavigatorHack();

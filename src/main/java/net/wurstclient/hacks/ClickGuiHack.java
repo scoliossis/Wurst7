@@ -7,8 +7,7 @@
  */
 package net.wurstclient.hacks;
 
-import java.awt.Color;
-
+import net.wurstclient.C;
 import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
 import net.wurstclient.clickgui.screens.ClickGuiScreen;
@@ -17,6 +16,8 @@ import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.ColorSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
+
+import java.awt.*;
 
 @DontSaveState
 @DontBlock
@@ -62,7 +63,7 @@ public final class ClickGuiHack extends Hack
 	@Override
 	protected void onEnable()
 	{
-		MC.gui.setScreen(new ClickGuiScreen(WURST.getGui()));
+		C.mc.execute(() -> MC.gui.setScreen(new ClickGuiScreen(WURST.getGui())));
 		setEnabled(false);
 	}
 	

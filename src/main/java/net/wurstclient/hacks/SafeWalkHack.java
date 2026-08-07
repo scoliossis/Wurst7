@@ -88,7 +88,7 @@ public final class SafeWalkHack extends Hack implements TickRotationListener {
 		return closestBlock.orElse(null);
 	}
 
-	private boolean isBlockHitResultValid(BlockHitResult blockHitResult) {
+	public static boolean isBlockHitResultValid(BlockHitResult blockHitResult) {
 		BlockPos blockPos = blockHitResult.getBlockPos().relative(blockHitResult.getDirection());
 		return !MC.level.getBlockState(blockHitResult.getBlockPos()).isAir()
 				&& MC.level.getEntities(null, new AABB(blockPos)).isEmpty();

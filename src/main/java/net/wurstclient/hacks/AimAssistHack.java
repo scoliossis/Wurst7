@@ -7,9 +7,6 @@
  */
 package net.wurstclient.hacks;
 
-import java.util.Comparator;
-import java.util.stream.Stream;
-
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -27,6 +24,9 @@ import net.wurstclient.util.BlockUtils;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.Rotation;
 import net.wurstclient.util.RotationUtils;
+
+import java.util.Comparator;
+import java.util.stream.Stream;
 
 public final class AimAssistHack extends Hack
 	implements UpdateListener, MouseUpdateListener
@@ -112,12 +112,9 @@ public final class AimAssistHack extends Hack
 	{
 		// disable incompatible hacks
 		WURST.getHax().autoFishHack.setEnabled(false);
-		WURST.getHax().clickAuraHack.setEnabled(false);
 		WURST.getHax().crystalAuraHack.setEnabled(false);
 		WURST.getHax().fightBotHack.setEnabled(false);
 		WURST.getHax().killauraHack.setEnabled(false);
-		WURST.getHax().killauraLegitHack.setEnabled(false);
-		WURST.getHax().multiAuraHack.setEnabled(false);
 		WURST.getHax().protectHack.setEnabled(false);
 		WURST.getHax().tpAuraHack.setEnabled(false);
 		

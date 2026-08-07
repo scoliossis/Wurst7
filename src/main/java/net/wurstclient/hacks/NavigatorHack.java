@@ -7,6 +7,7 @@
  */
 package net.wurstclient.hacks;
 
+import net.wurstclient.C;
 import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
 import net.wurstclient.hack.DontSaveState;
@@ -27,8 +28,9 @@ public final class NavigatorHack extends Hack
 	@Override
 	protected void onEnable()
 	{
-		if(!(MC.gui.screen() instanceof NavigatorMainScreen))
-			MC.gui.setScreen(new NavigatorMainScreen());
+		if(!(MC.gui.screen() instanceof NavigatorMainScreen)) {
+			C.mc.execute(() -> MC.gui.setScreen(new NavigatorMainScreen()));
+		}
 		
 		setEnabled(false);
 	}

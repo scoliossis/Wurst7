@@ -7,15 +7,12 @@
  */
 package net.wurstclient.hacks;
 
-import java.awt.Color;
-import java.util.ArrayList;
-
 import com.mojang.blaze3d.vertex.PoseStack;
-
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.wurstclient.C;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.CameraTransformViewBobbingListener;
@@ -27,6 +24,9 @@ import net.wurstclient.settings.EspBoxSizeSetting;
 import net.wurstclient.settings.EspStyleSetting;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RenderUtils;
+
+import java.awt.*;
+import java.util.ArrayList;
 
 @SearchTags({"item esp", "ItemTracers", "item tracers"})
 public final class ItemEspHack extends Hack implements UpdateListener,
@@ -72,7 +72,9 @@ public final class ItemEspHack extends Hack implements UpdateListener,
 	public void onUpdate()
 	{
 		items.clear();
-		for(Entity entity : MC.level.entitiesForRendering())
+		if (C.w() == null) return;
+
+		for(Entity entity : C.w().entitiesForRendering())
 			if(entity instanceof ItemEntity)
 				items.add((ItemEntity)entity);
 	}

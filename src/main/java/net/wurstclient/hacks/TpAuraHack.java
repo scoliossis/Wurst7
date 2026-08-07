@@ -7,11 +7,6 @@
  */
 package net.wurstclient.hacks;
 
-import java.util.Comparator;
-import java.util.Random;
-import java.util.function.ToDoubleFunction;
-import java.util.stream.Stream;
-
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
@@ -20,16 +15,17 @@ import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.AttackSpeedSliderSetting;
-import net.wurstclient.settings.EnumSetting;
-import net.wurstclient.settings.PauseAttackOnContainersSetting;
-import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.settings.filterlists.EntityFilterList;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RotationUtils;
+
+import java.util.Comparator;
+import java.util.Random;
+import java.util.function.ToDoubleFunction;
+import java.util.stream.Stream;
 
 @SearchTags({"TpAura", "tp aura", "EnderAura", "Ender-Aura", "ender aura"})
 public final class TpAuraHack extends Hack implements UpdateListener
@@ -77,12 +73,9 @@ public final class TpAuraHack extends Hack implements UpdateListener
 	{
 		// disable other killauras
 		WURST.getHax().aimAssistHack.setEnabled(false);
-		WURST.getHax().clickAuraHack.setEnabled(false);
 		WURST.getHax().crystalAuraHack.setEnabled(false);
 		WURST.getHax().fightBotHack.setEnabled(false);
-		WURST.getHax().killauraLegitHack.setEnabled(false);
 		WURST.getHax().killauraHack.setEnabled(false);
-		WURST.getHax().multiAuraHack.setEnabled(false);
 		WURST.getHax().protectHack.setEnabled(false);
 		WURST.getHax().triggerBotHack.setEnabled(false);
 		

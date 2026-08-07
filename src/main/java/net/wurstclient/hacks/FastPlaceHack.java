@@ -7,10 +7,14 @@
  */
 package net.wurstclient.hacks;
 
+import net.minecraft.world.phys.BlockHitResult;
+import net.wurstclient.C;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
+import net.wurstclient.events.TickRotationListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.util.EntityUtils;
 
 @SearchTags({"fast place"})
 public final class FastPlaceHack extends Hack implements UpdateListener
@@ -36,6 +40,11 @@ public final class FastPlaceHack extends Hack implements UpdateListener
 	@Override
 	public void onUpdate()
 	{
-		MC.rightClickDelay = 0;
+		// check if ur holding a block and looking at a block
+		if (ScaffoldWalkHack.isValidBlock(C.p().getInventory().getSelectedSlot())
+		&&  EntityUtils.getMouseOver(TickRotationListener.TickRotationEvent.getLastRotation()) instanceof BlockHitResult blockHitResult
+		&& SafeWalkHack.isBlockHitResultValid(blockHitResult)) {
+			MC.rightClickDelay = 0;
+		}
 	}
 }
